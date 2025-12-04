@@ -644,9 +644,6 @@ class CPUProfiler:
 - ✅ **ALU is stateless**: Pure computation with no side effects
 - ✅ **CPU is a state machine**: Reads state → computes → writes state → repeat
 - ✅ **Assembly is symbolic machine code**: Human-readable representation of bits
-- ✅ **@0 is valid**: It sets A=0, not a halt instruction
-- ✅ **HALT instruction**: Explicit way to stop execution cleanly
-- ✅ **CPU reset is important**: Always reset CPU state between program runs
 - ✅ **Harvard architecture**: Separate instruction and data memory for safety
 
 #### Common Pitfalls
