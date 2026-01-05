@@ -1,0 +1,14 @@
+// Test expression parsing
+class Main {
+    function void main() {
+        var int a, b, c;
+
+        let a = 5;
+        let b = 10;
+        let c = a + b * 2;
+
+        do Output.printInt(c);
+
+        return;
+    }
+}

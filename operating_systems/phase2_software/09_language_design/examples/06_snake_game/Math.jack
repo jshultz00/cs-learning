@@ -1,0 +1,42 @@
+/**
+ * Math - Simple math utilities for Snake game
+ *
+ * Note: This is a simplified version for the game.
+ * The full Jack OS Math library has more functions.
+ *
+ * Demonstrates:
+ * - Static functions (utility class)
+ * - Mathematical operations
+ */
+class Math {
+    /** Return absolute value of x */
+    function int abs(int x) {
+        if (x < 0) {
+            return -x;
+        }
+        return x;
+    }
+
+    /** Return x modulo y (remainder) */
+    function int mod(int x, int y) {
+        var int quotient;
+        let quotient = x / y;
+        return x - (quotient * y);
+    }
+
+    /** Return minimum of two values */
+    function int min(int a, int b) {
+        if (a < b) {
+            return a;
+        }
+        return b;
+    }
+
+    /** Return maximum of two values */
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        }
+        return b;
+    }
+}

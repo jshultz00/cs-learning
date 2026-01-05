@@ -1,0 +1,79 @@
+/**
+ * Sys.jack
+ * 
+ * Provides system-level services including initialization, halt, wait, and error handling.
+ * The Sys.init() function is the first function called when any Jack program starts.
+ * 
+ * Standard library for the Jack OS.
+ */
+
+class Sys {
+
+    /** Performs all the initializations required by the OS. */
+    function void init() {
+        // Initialize all OS modules in the correct order
+        do Memory.init();
+        do Math.init();
+        do Screen.init();
+        do Output.init();
+        do Keyboard.init();
+        
+        // Call Main.main() to start the user program
+        do Main.main();
+        
+        // Halt when main returns
+        do Sys.halt();
+        
+        return;
+    }
+
+    /** Halts the program execution. */
+    function void halt() {
+        // Infinite loop to halt execution
+        while (true) {
+            // Do nothing
+        }
+        return;
+    }
+
+    /** Waits approximately duration milliseconds and returns. */
+    function void wait(int duration) {
+        var int i;
+        var int j;
+        
+        // Simple busy-wait loop
+        // The exact timing depends on the hardware/emulator speed
+        // Calibrated for typical Hack computer implementations
+        
+        if (duration < 0) {
+            do Sys.error(1);  // Duration must be positive
+        }
+        
+        let i = 0;
+        while (i < duration) {
+            let j = 0;
+            // Inner loop to consume time (~1ms per outer iteration)
+            while (j < 100) {
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+        
+        return;
+    }
+
+    /** Displays the given error code in the form "ERR<errorCode>", and halts. */
+    function void error(int errorCode) {
+        // Display error message
+        do Output.printString("ERR<");
+        do Output.printInt(errorCode);
+        do Output.printString(">");
+        do Output.println();
+        
+        // Halt execution
+        do Sys.halt();
+        
+        return;
+    }
+}
+

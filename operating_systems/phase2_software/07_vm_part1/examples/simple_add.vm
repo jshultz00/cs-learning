@@ -1,0 +1,4 @@
+// Simple addition: 7 + 8 = 15
+push constant 7
+push constant 8
+add

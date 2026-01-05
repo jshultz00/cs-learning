@@ -1,0 +1,213 @@
+/**
+ * Screen Library - Graphics primitives for 256×512 monochrome display
+ *
+ * Implements:
+ * - Pixel drawing with bit manipulation
+ * - Line drawing using Bresenham's algorithm
+ * - Rectangle drawing (filled)
+ * - Circle drawing using midpoint algorithm
+ *
+ * Screen memory: 16384-24575 (8,192 words)
+ * Resolution: 512 columns × 256 rows
+ * Layout: 32 words per row, 16 pixels per word
+ */
+class Screen {
+    static boolean currentColor;
+    static Array screen;
+    static Array twoToThe;
+
+    /** Initializes the Screen */
+    function void init() {
+        var int i, value;
+
+        let screen = 16384;
+        let currentColor = true;  // Black (true = black, false = white)
+
+        // Build power-of-2 lookup table for bit manipulation
+        let twoToThe = Array.new(16);
+        let value = 1;
+        let i = 0;
+
+        while (i < 16) {
+            let twoToThe[i] = value;
+            let value = value + value;  // Multiply by 2
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /** Erases the whole screen */
+    function void clearScreen() {
+        var int i;
+        let i = 0;
+
+        while (i < 8192) {
+            let screen[i] = 0;  // White (all bits 0)
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /** Sets the color to be used in further draw commands
+        where white = false, black = true */
+    function void setColor(boolean b) {
+        let currentColor = b;
+        return;
+    }
+
+    /** Draws the (x, y) pixel */
+    function void drawPixel(int x, int y) {
+        var int address, mask, value;
+
+        // Calculate screen memory address
+        // address = base + (y * 32) + (x / 16)
+        let address = (y * 32) + (x / 16);
+
+        // Get bitmask for pixel position within word
+        let mask = twoToThe[x & 15];  // x mod 16
+
+        // Read current value
+        let value = screen[address];
+
+        if (currentColor) {
+            // Black: set bit to 1
+            let value = value | mask;
+        } else {
+            // White: set bit to 0
+            let value = value & ~mask;
+        }
+
+        let screen[address] = value;
+        return;
+    }
+
+    /** Draws a line from (x1, y1) to (x2, y2) */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+        var int dx, dy, a, b, diff, temp;
+
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+
+        // Ensure left-to-right drawing
+        if (dx < 0) {
+            // Swap points
+            let temp = x1;
+            let x1 = x2;
+            let x2 = temp;
+            let temp = y1;
+            let y1 = y2;
+            let y2 = temp;
+            let dx = -dx;
+            let dy = -dy;
+        }
+
+        // Vertical line
+        if (dx = 0) {
+            do Screen.drawVerticalLine(x1, Math.min(y1, y2), Math.max(y1, y2));
+            return;
+        }
+
+        // Horizontal line
+        if (dy = 0) {
+            do Screen.drawHorizontalLine(Math.min(x1, x2), Math.max(x1, x2), y1);
+            return;
+        }
+
+        // Diagonal line (Bresenham's algorithm)
+        let a = 0;
+        let b = 0;
+        let diff = 0;
+
+        if (dy > 0) {
+            // Positive slope
+            while (~(a > dx) & ~(b > dy)) {
+                do Screen.drawPixel(x1 + a, y1 + b);
+
+                if (diff < 0) {
+                    let a = a + 1;
+                    let diff = diff + dy;
+                } else {
+                    let b = b + 1;
+                    let diff = diff - dx;
+                }
+            }
+        } else {
+            // Negative slope
+            let dy = -dy;
+            while (~(a > dx) & ~(b > dy)) {
+                do Screen.drawPixel(x1 + a, y1 - b);
+
+                if (diff < 0) {
+                    let a = a + 1;
+                    let diff = diff + dy;
+                } else {
+                    let b = b + 1;
+                    let diff = diff - dx;
+                }
+            }
+        }
+
+        return;
+    }
+
+    /** Draws a vertical line (optimized) */
+    function void drawVerticalLine(int x, int y1, int y2) {
+        var int y;
+        let y = y1;
+
+        while (~(y > y2)) {
+            do Screen.drawPixel(x, y);
+            let y = y + 1;
+        }
+
+        return;
+    }
+
+    /** Draws a horizontal line (optimized) */
+    function void drawHorizontalLine(int x1, int x2, int y) {
+        var int x;
+        let x = x1;
+
+        while (~(x > x2)) {
+            do Screen.drawPixel(x, y);
+            let x = x + 1;
+        }
+
+        return;
+    }
+
+    /** Draws a filled rectangle where the top left corner
+        is (x1, y1) and the bottom right corner is (x2, y2) */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+        var int y;
+        let y = y1;
+
+        while (~(y > y2)) {
+            do Screen.drawHorizontalLine(x1, x2, y);
+            let y = y + 1;
+        }
+
+        return;
+    }
+
+    /** Draws a filled circle of radius r around (cx, cy) */
+    function void drawCircle(int cx, int cy, int r) {
+        var int dx, dy;
+
+        if ((r < 0) | (r > 181)) {
+            do Sys.error(12);  // Illegal circle radius
+        }
+
+        let dy = -r;
+
+        while (~(dy > r)) {
+            let dx = Math.sqrt((r * r) - (dy * dy));
+            do Screen.drawHorizontalLine(cx - dx, cx + dx, cy + dy);
+            let dy = dy + 1;
+        }
+
+        return;
+    }
+}

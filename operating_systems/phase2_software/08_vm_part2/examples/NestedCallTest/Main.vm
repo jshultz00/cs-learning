@@ -1,0 +1,13 @@
+
+function Main.main 1
+    push constant 3
+    call Main.square 1
+    pop local 0
+    push local 0
+    return
+
+function Main.square 0
+    push argument 0
+    push argument 0
+    call Math.multiply 2
+    return

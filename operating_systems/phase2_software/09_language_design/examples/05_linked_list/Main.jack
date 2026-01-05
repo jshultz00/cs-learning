@@ -1,0 +1,78 @@
+/**
+ * Linked List Demonstration
+ *
+ * Demonstrates:
+ * - Using a custom data structure
+ * - Multiple object creation
+ * - Testing data structure operations
+ */
+class Main {
+    function void main() {
+        var List list;
+
+        // Create empty list
+        let list = List.new();
+
+        do Output.printString("Creating empty list...");
+        do Output.println();
+        do Output.printString("List: ");
+        do list.print();
+        do Output.println();
+        do Output.printString("Size: ");
+        do Output.printInt(list.getSize());
+        do Output.println();
+
+        // Add elements to front
+        do Output.println();
+        do Output.printString("Adding 10, 20, 30 to front...");
+        do Output.println();
+        do list.addFront(10);
+        do list.addFront(20);
+        do list.addFront(30);
+
+        do Output.printString("List: ");
+        do list.print();
+        do Output.println();
+        do Output.printString("Size: ");
+        do Output.printInt(list.getSize());
+        do Output.println();
+
+        // Add elements to back
+        do Output.println();
+        do Output.printString("Adding 5, 3 to back...");
+        do Output.println();
+        do list.addBack(5);
+        do list.addBack(3);
+
+        do Output.printString("List: ");
+        do list.print();
+        do Output.println();
+        do Output.printString("Size: ");
+        do Output.printInt(list.getSize());
+        do Output.println();
+
+        // Get first element
+        do Output.println();
+        do Output.printString("First element: ");
+        do Output.printInt(list.getFirst());
+        do Output.println();
+
+        // Remove first element
+        do Output.println();
+        do Output.printString("Removing first element...");
+        do Output.println();
+        do list.removeFirst();
+
+        do Output.printString("List: ");
+        do list.print();
+        do Output.println();
+        do Output.printString("Size: ");
+        do Output.printInt(list.getSize());
+        do Output.println();
+
+        // Clean up memory
+        do list.dispose();
+
+        return;
+    }
+}

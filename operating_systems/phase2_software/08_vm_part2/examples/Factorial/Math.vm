@@ -1,0 +1,28 @@
+// Math.multiply - multiply using repeated addition
+function Math.multiply 2
+    push constant 0
+    pop local 0        // accumulator = 0
+    push argument 1
+    pop local 1        // counter = b
+
+label MULT_LOOP
+    push local 1
+    push constant 0
+    eq
+    if-goto MULT_END
+
+    push local 0
+    push argument 0
+    add
+    pop local 0        // accumulator += a
+
+    push local 1
+    push constant 1
+    sub
+    pop local 1        // counter--
+
+    goto MULT_LOOP
+
+label MULT_END
+    push local 0
+    return

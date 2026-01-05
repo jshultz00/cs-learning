@@ -1,0 +1,20 @@
+// Test program using Point class
+class Main {
+    function void main() {
+        var Point p1, p2;
+        var int dist;
+
+        let p1 = Point.new(0, 0);
+        let p2 = Point.new(3, 4);
+
+        let dist = p1.distance(p2);
+
+        do Output.printString("Distance: ");
+        do Output.printInt(dist);
+
+        do p1.dispose();
+        do p2.dispose();
+
+        return;
+    }
+}

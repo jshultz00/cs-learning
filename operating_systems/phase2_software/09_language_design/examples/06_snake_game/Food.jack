@@ -1,0 +1,48 @@
+/**
+ * Food - Food item for snake to eat
+ *
+ * Demonstrates:
+ * - Simple game entity
+ * - Position tracking
+ * - Graphics rendering
+ */
+class Food {
+    field int x, y;
+
+    /** Constructor */
+    constructor Food new(int ax, int ay) {
+        let x = ax;
+        let y = ay;
+        return this;
+    }
+
+    /** Destructor */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Get X coordinate */
+    method int getX() {
+        return x;
+    }
+
+    /** Get Y coordinate */
+    method int getY() {
+        return y;
+    }
+
+    /** Set new position */
+    method void setPosition(int newX, int newY) {
+        let x = newX;
+        let y = newY;
+        return;
+    }
+
+    /** Draw food as a circle */
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawCircle(x * 2, y * 2, 2);
+        return;
+    }
+}

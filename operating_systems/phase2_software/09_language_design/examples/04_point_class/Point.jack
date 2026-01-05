@@ -1,0 +1,71 @@
+/**
+ * Point - 2D coordinate representation
+ *
+ * Demonstrates:
+ * - Class fields (instance variables)
+ * - Constructor pattern
+ * - Methods (instance functions)
+ * - Getters and setters
+ * - Object lifecycle (new/dispose)
+ */
+class Point {
+    field int x, y;
+
+    /** Constructor - allocate and initialize Point */
+    constructor Point new(int ax, int ay) {
+        let x = ax;
+        let y = ay;
+        return this;
+    }
+
+    /** Destructor - free memory */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Getters */
+    method int getX() {
+        return x;
+    }
+
+    method int getY() {
+        return y;
+    }
+
+    /** Setters */
+    method void setX(int newX) {
+        let x = newX;
+        return;
+    }
+
+    method void setY(int newY) {
+        let y = newY;
+        return;
+    }
+
+    /** Move point by delta values */
+    method void move(int dx, int dy) {
+        let x = x + dx;
+        let y = y + dy;
+        return;
+    }
+
+    /** Calculate Manhattan distance from origin */
+    method int distanceFromOrigin() {
+        var int absX, absY;
+        let absX = Math.abs(x);
+        let absY = Math.abs(y);
+        return absX + absY;
+    }
+
+    /** Print point in (x, y) format */
+    method void print() {
+        do Output.printString("(");
+        do Output.printInt(x);
+        do Output.printString(", ");
+        do Output.printInt(y);
+        do Output.printString(")");
+        return;
+    }
+}

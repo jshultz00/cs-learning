@@ -1,0 +1,121 @@
+/**
+ * List - Singly-linked list
+ *
+ * Demonstrates:
+ * - Data structure implementation
+ * - Object composition (List contains Nodes)
+ * - Iteration with while loops
+ * - Memory management for multiple objects
+ * - Null checking
+ */
+class List {
+    field Node head;
+    field int size;
+
+    /** Constructor - create empty list */
+    constructor List new() {
+        let head = null;
+        let size = 0;
+        return this;
+    }
+
+    /** Destructor - dispose all nodes */
+    method void dispose() {
+        var Node current, next;
+        let current = head;
+
+        // Iterate through list and dispose each node
+        while (~(current = null)) {
+            let next = current.getNext();
+            do current.dispose();
+            let current = next;
+        }
+
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Add element to front (O(1)) */
+    method void addFront(int value) {
+        var Node newNode;
+        let newNode = Node.new(value);
+        do newNode.setNext(head);
+        let head = newNode;
+        let size = size + 1;
+        return;
+    }
+
+    /** Add element to back (O(n)) */
+    method void addBack(int value) {
+        var Node newNode, current;
+
+        let newNode = Node.new(value);
+
+        // If list is empty, new node becomes head
+        if (head = null) {
+            let head = newNode;
+        } else {
+            // Find last node
+            let current = head;
+            while (~(current.getNext() = null)) {
+                let current = current.getNext();
+            }
+            do current.setNext(newNode);
+        }
+
+        let size = size + 1;
+        return;
+    }
+
+    /** Get size */
+    method int getSize() {
+        return size;
+    }
+
+    /** Check if list is empty */
+    method boolean isEmpty() {
+        return head = null;
+    }
+
+    /** Get first element (returns 0 if empty) */
+    method int getFirst() {
+        if (head = null) {
+            return 0;
+        }
+        return head.getData();
+    }
+
+    /** Remove first element */
+    method void removeFirst() {
+        var Node oldHead;
+
+        if (~(head = null)) {
+            let oldHead = head;
+            let head = head.getNext();
+            do oldHead.dispose();
+            let size = size - 1;
+        }
+
+        return;
+    }
+
+    /** Print list in [a, b, c] format */
+    method void print() {
+        var Node current;
+        let current = head;
+
+        do Output.printString("[");
+
+        while (~(current = null)) {
+            do Output.printInt(current.getData());
+            let current = current.getNext();
+
+            if (~(current = null)) {
+                do Output.printString(", ");
+            }
+        }
+
+        do Output.printString("]");
+        return;
+    }
+}

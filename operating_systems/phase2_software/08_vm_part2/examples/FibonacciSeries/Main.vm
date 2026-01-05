@@ -1,0 +1,59 @@
+// Test: Iterative Fibonacci - compute first 8 numbers
+function Main.main 0
+    push constant 8
+    call Main.fibonacci 1
+    pop temp 0
+    push constant 0
+    return
+
+// Compute Fibonacci series iteratively
+function Main.fibonacci 4
+    // local 0 = n (counter)
+    // local 1 = a (previous)
+    // local 2 = b (current)
+    // local 3 = temp
+
+    push argument 0
+    pop local 0
+
+    push constant 0
+    pop local 1        // a = 0
+
+    push constant 1
+    pop local 2        // b = 1
+
+label FIB_LOOP
+    push local 0
+    push constant 0
+    eq
+    if-goto FIB_END
+
+    // Store b to static variable (simulating output)
+    push local 2
+    pop static 0
+
+    // temp = a + b
+    push local 1
+    push local 2
+    add
+    pop local 3
+
+    // a = b
+    push local 2
+    pop local 1
+
+    // b = temp
+    push local 3
+    pop local 2
+
+    // n--
+    push local 0
+    push constant 1
+    sub
+    pop local 0
+
+    goto FIB_LOOP
+
+label FIB_END
+    push constant 0
+    return

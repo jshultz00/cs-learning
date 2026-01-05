@@ -1,0 +1,164 @@
+/**
+ * String Library - Character array management and integer conversion
+ *
+ * Implements:
+ * - Dynamic character array with length tracking
+ * - Integer to string conversion (with negative numbers)
+ * - String to integer parsing
+ */
+class String {
+    field Array chars;
+    field int currentLength;
+    field int maximumLength;
+
+    /** Constructs a new empty string with maximum length of maxLength */
+    constructor String new(int maxLength) {
+        if (maxLength < 1) {
+            let maxLength = 1;
+        }
+        let maximumLength = maxLength;
+        let currentLength = 0;
+        let chars = Array.new(maxLength);
+        return this;
+    }
+
+    /** Disposes this string */
+    method void dispose() {
+        do chars.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Returns the current length of this string */
+    method int length() {
+        return currentLength;
+    }
+
+    /** Returns the character at index j */
+    method char charAt(int j) {
+        return chars[j];
+    }
+
+    /** Sets the character at index j to c */
+    method void setCharAt(int j, char c) {
+        let chars[j] = c;
+        return;
+    }
+
+    /** Appends the character c to the end of this string and returns this string */
+    method String appendChar(char c) {
+        if (currentLength < maximumLength) {
+            let chars[currentLength] = c;
+            let currentLength = currentLength + 1;
+        }
+        return this;
+    }
+
+    /** Erases the last character from this string */
+    method void eraseLastChar() {
+        if (currentLength > 0) {
+            let currentLength = currentLength - 1;
+        }
+        return;
+    }
+
+    /** Returns the integer value of this string until a non-numeric character */
+    method int intValue() {
+        var int value, i, digit;
+        var boolean isNegative;
+
+        let value = 0;
+        let i = 0;
+        let isNegative = false;
+
+        // Check for negative sign
+        if ((currentLength > 0) & (chars[0] = 45)) {  // '-' = ASCII 45
+            let isNegative = true;
+            let i = 1;
+        }
+
+        // Convert digits
+        while (i < currentLength) {
+            let digit = chars[i] - 48;  // '0' = ASCII 48
+            let value = (value * 10) + digit;
+            let i = i + 1;
+        }
+
+        if (isNegative) {
+            return -value;
+        }
+        return value;
+    }
+
+    /** Sets this string to hold a representation of the given number */
+    method void setInt(int number) {
+        var int temp, digit;
+        var boolean isNegative;
+
+        let currentLength = 0;
+        let isNegative = false;
+
+        if (number < 0) {
+            let isNegative = true;
+            let number = -number;
+        }
+
+        // Special case for 0
+        if (number = 0) {
+            do appendChar(48);  // '0'
+            return;
+        }
+
+        // Build string in reverse
+        let temp = number;
+        while (temp > 0) {
+            let digit = temp - ((temp / 10) * 10);  // temp % 10
+            let chars[currentLength] = digit + 48;  // Convert to ASCII
+            let currentLength = currentLength + 1;
+            let temp = temp / 10;
+        }
+
+        // Add negative sign
+        if (isNegative) {
+            let chars[currentLength] = 45;  // '-'
+            let currentLength = currentLength + 1;
+        }
+
+        // Reverse the string
+        do reverseChars();
+        return;
+    }
+
+    /** Reverses the character array (helper for setInt) */
+    method void reverseChars() {
+        var int i, j;
+        var char temp;
+
+        let i = 0;
+        let j = currentLength - 1;
+
+        while (i < j) {
+            let temp = chars[i];
+            let chars[i] = chars[j];
+            let chars[j] = temp;
+            let i = i + 1;
+            let j = j - 1;
+        }
+        return;
+    }
+
+    /** Returns the newline character */
+    function char newLine() {
+        return 128;
+    }
+
+    /** Returns the backspace character */
+    function char backSpace() {
+        return 129;
+    }
+
+    /** Returns the double quote (") character */
+    function char doubleQuote() {
+        return 34;
+    }
+}

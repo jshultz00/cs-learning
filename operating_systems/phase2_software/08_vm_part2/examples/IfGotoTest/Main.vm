@@ -1,0 +1,28 @@
+
+function Main.main 1
+    // Test 1: if-goto with true (non-zero)
+    push constant 10
+    if-goto BRANCH_TRUE
+    push constant 0
+    pop local 0
+    goto END1
+label BRANCH_TRUE
+    push constant 1
+    pop local 0
+label END1
+
+    // Test 2: if-goto with false (zero)
+    push constant 0
+    if-goto BRANCH_FALSE
+    push local 0
+    push constant 10
+    add
+    pop local 0
+    goto END2
+label BRANCH_FALSE
+    push constant 999
+    pop local 0
+label END2
+
+    push local 0
+    return

@@ -1,0 +1,129 @@
+/**
+ * Keyboard.jack
+ * 
+ * Provides keyboard input services.
+ * The keyboard is mapped to memory address 24576.
+ * 
+ * Standard library for the Jack OS.
+ */
+
+class Keyboard {
+
+    /** Initializes the keyboard. */
+    function void init() {
+        // No initialization needed - keyboard is memory-mapped at 24576
+        return;
+    } 
+
+    /**
+     * Returns the character of the currently pressed key on the keyboard;
+     * if no key is currently pressed, returns 0.
+     *
+     * Recognizes all ASCII characters, as well as the following keys:
+     * new line = 128 = String.newline()
+     * backspace = 129 = String.backspace()
+     * left arrow = 130
+     * up arrow = 131
+     * right arrow = 132
+     * down arrow = 133
+     * home = 134
+     * End = 135
+     * page up = 136
+     * page down = 137
+     * insert = 138
+     * delete = 139
+     * ESC = 140
+     * F1 - F12 = 141 - 152
+     */
+    function char keyPressed() {
+        return Memory.peek(24576);
+    }
+
+    /**								
+     * Waits until a key is pressed on the keyboard and released,
+     * then echoes the key to the screen, and returns the character 
+     * of the pressed key.
+     */
+    function char readChar() {
+        var char key;
+        var char currentKey;
+
+        // Display cursor (blinking effect)
+        do Output.printChar(0);
+
+        // Wait for key press
+        while (Keyboard.keyPressed() = 0) {
+            // Wait
+        }
+        
+        let key = Keyboard.keyPressed();
+
+        // Wait for key release
+        while (~(Keyboard.keyPressed() = 0)) {
+            // Wait
+        }
+
+        // Echo the key to the screen
+        do Output.backSpace();  // Remove cursor
+        do Output.printChar(key);
+
+        return key;
+    }
+
+    /**								
+     * Displays the message on the screen, reads from the keyboard the entered
+     * text until a newline character is detected, echoes the text to the screen,
+     * and returns its value. Also handles user backspaces.
+     */
+    function String readLine(String message) {
+        var String str;
+        var char c;
+
+        // Display the message
+        do Output.printString(message);
+
+        // Create string to hold input (max 80 characters)
+        let str = String.new(80);
+
+        // Read characters until newline
+        while (true) {
+            let c = Keyboard.readChar();
+
+            if (c = 128) {  // newline
+                do Output.println();
+                return str;
+            }
+
+            if (c = 129) {  // backspace
+                if (str.length() > 0) {
+                    do str.eraseLastChar();
+                }
+            } else {
+                // Append character if not special key
+                if ((c > 31) & (c < 127)) {
+                    let str = str.appendChar(c);
+                }
+            }
+        }
+
+        return str;
+    }   
+
+    /**								
+     * Displays the message on the screen, reads from the keyboard the entered
+     * text until a newline character is detected, echoes the text to the screen,
+     * and returns its integer value (until the first non-digit character in the
+     * entered text is detected). Also handles user backspaces. 
+     */
+    function int readInt(String message) {
+        var String str;
+        var int value;
+
+        let str = Keyboard.readLine(message);
+        let value = str.intValue();
+        do str.dispose();
+
+        return value;
+    }
+}
+

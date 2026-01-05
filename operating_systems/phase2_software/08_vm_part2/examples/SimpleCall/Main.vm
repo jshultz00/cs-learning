@@ -1,0 +1,15 @@
+// Test: Simple function call - add two numbers
+function Main.main 1
+    push constant 7
+    push constant 3
+    call Main.add 2    // add(7, 3)
+    pop local 0        // local[0] = result (10)
+    push local 0
+    return
+
+// Add function
+function Main.add 0
+    push argument 0
+    push argument 1
+    add
+    return

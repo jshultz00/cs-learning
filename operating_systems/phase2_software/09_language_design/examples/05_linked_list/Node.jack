@@ -1,0 +1,43 @@
+/**
+ * Node - Linked list node
+ *
+ * Demonstrates:
+ * - Object composition (Node references another Node)
+ * - Encapsulation of data and next pointer
+ * - Simple getters/setters
+ */
+class Node {
+    field int data;
+    field Node next;
+
+    /** Constructor */
+    constructor Node new(int value) {
+        let data = value;
+        let next = null;
+        return this;
+    }
+
+    /** Destructor */
+    method void dispose() {
+        // Don't recursively dispose 'next' here
+        // List class handles disposing all nodes
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Get node data */
+    method int getData() {
+        return data;
+    }
+
+    /** Get next node reference */
+    method Node getNext() {
+        return next;
+    }
+
+    /** Set next node reference */
+    method void setNext(Node n) {
+        let next = n;
+        return;
+    }
+}

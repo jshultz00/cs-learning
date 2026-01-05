@@ -1,0 +1,18 @@
+
+function Main.main 1
+    push constant 5
+    push constant 3
+    call Main.subtract 2
+    pop local 0
+    push local 0
+    return
+
+function Main.subtract 2
+    push argument 0
+    pop local 0
+    push argument 1
+    pop local 1
+    push local 0
+    push local 1
+    sub
+    return

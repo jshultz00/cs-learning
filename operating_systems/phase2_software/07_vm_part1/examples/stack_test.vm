@@ -1,0 +1,60 @@
+// Test all arithmetic operations
+push constant 17
+push constant 17
+eq            // true (-1)
+
+push constant 17
+push constant 16
+eq            // false (0)
+
+push constant 16
+push constant 17
+gt            // false (0)
+
+push constant 17
+push constant 16
+gt            // true (-1)
+
+push constant 16
+push constant 17
+lt            // true (-1)
+
+push constant 17
+push constant 16
+lt            // false (0)
+
+push constant 892
+push constant 891
+lt            // false (0)
+
+push constant 891
+push constant 892
+lt            // true (-1)
+
+push constant 32767
+push constant 32766
+gt            // true (-1)
+
+push constant 32766
+push constant 32767
+gt            // false (0)
+
+push constant 32766
+push constant 32767
+lt            // true (-1)
+
+push constant 32767
+push constant 32766
+lt            // false (0)
+
+push constant 57
+push constant 31
+push constant 53
+add
+push constant 112
+sub
+neg
+and
+push constant 82
+or
+not

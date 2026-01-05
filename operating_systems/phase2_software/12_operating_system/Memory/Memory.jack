@@ -1,0 +1,111 @@
+/**
+ * Memory Library - Heap manager with first-fit allocation
+ *
+ * Implements:
+ * - Free list management (singly-linked list of free blocks)
+ * - First-fit allocation algorithm
+ * - Block splitting for efficient memory use
+ * - peek/poke for direct RAM access
+ *
+ * Heap: 2048-16383 (14,336 words)
+ */
+class Memory {
+    static Array memory;
+    static Array freeList;
+    static int heapBase;
+    static int heapEnd;
+
+    /** Initializes memory parameters */
+    function void init() {
+        let heapBase = 2048;
+        let heapEnd = 16384;
+        let memory = 0;  // Base address (allows memory[address] notation)
+        let freeList = heapBase;
+
+        // Initialize free list with single large block
+        // Block format: [size, next, ...data...]
+        let freeList[0] = heapEnd - heapBase;  // Size of entire heap
+        let freeList[1] = null;                 // Next pointer (no more blocks)
+
+        return;
+    }
+
+    /** Returns the value of the main memory at address */
+    function int peek(int address) {
+        return memory[address];
+    }
+
+    /** Sets the value of the main memory at address to value */
+    function void poke(int address, int value) {
+        let memory[address] = value;
+        return;
+    }
+
+    /** Finds and allocates a block of the given size from the heap */
+    function Array alloc(int size) {
+        var Array block, nextBlock, result;
+        var int blockSize;
+        var Array prevBlock;
+
+        let block = freeList;
+        let prevBlock = null;
+
+        // Search free list for suitable block (first-fit)
+        while (~(block = null)) {
+            let blockSize = block[0];
+
+            // Check if block is large enough (+1 for size header)
+            if (~(blockSize < (size + 1))) {
+                // Block is large enough
+
+                // Split block if much larger (leave room for another allocation)
+                if (blockSize > (size + 3)) {
+                    // Create new allocated block at end of current block
+                    let result = block + blockSize - size;
+                    let result[-1] = size + 1;  // Size header (includes header word)
+
+                    // Update free block size (reduce by allocated amount + header)
+                    let block[0] = blockSize - size - 1;
+
+                    return result;
+                } else {
+                    // Use entire block (too small to split efficiently)
+
+                    // Remove block from free list
+                    if (block = freeList) {
+                        // Removing head of list
+                        let freeList = block[1];
+                    } else {
+                        // Removing from middle of list
+                        let prevBlock[1] = block[1];
+                    }
+
+                    let result = block + 1;
+                    let result[-1] = blockSize;
+                    return result;
+                }
+            }
+
+            // Move to next block
+            let prevBlock = block;
+            let block = block[1];
+        }
+
+        // No suitable block found
+        do Sys.error(6);  // Heap overflow
+        return null;
+    }
+
+    /** Deallocates the given object by adding it to the free list */
+    function void deAlloc(Array object) {
+        var Array block;
+
+        let block = object - 1;  // Get block header
+
+        // Add to front of free list (simple strategy)
+        let block[1] = freeList;
+        let freeList = block;
+
+        return;
+    }
+}

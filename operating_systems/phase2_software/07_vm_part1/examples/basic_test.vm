@@ -1,0 +1,26 @@
+// Test basic memory access
+push constant 10
+pop local 0       // local[0] = 10
+push constant 21
+push constant 22
+pop argument 2    // argument[2] = 22
+pop argument 1    // argument[1] = 21
+push constant 36
+pop this 6        // this[6] = 36
+push constant 42
+push constant 45
+pop that 5        // that[5] = 45
+pop that 2        // that[2] = 42
+push constant 510
+pop temp 6        // temp[6] = 510
+push local 0      // Push local[0] (10)
+push that 5       // Push that[5] (45)
+add               // 10 + 45 = 55
+push argument 1   // Push argument[1] (21)
+sub               // 55 - 21 = 34
+push this 6       // Push this[6] (36)
+push this 6       // Push this[6] (36)
+add               // 36 + 36 = 72
+sub               // 34 - 72 = -38
+push temp 6       // Push temp[6] (510)
+add               // -38 + 510 = 472

@@ -1,0 +1,39 @@
+/**
+ * Factorial Calculator
+ *
+ * Demonstrates:
+ * - Recursive functions
+ * - Function calls with arguments
+ * - If/else conditional logic
+ * - Integer arithmetic
+ * - Output functions
+ */
+class Main {
+    function void main() {
+        do Output.printString("Factorial of 5 = ");
+        do Output.printInt(Main.factorial(5));
+        do Output.println();
+
+        do Output.printString("Factorial of 7 = ");
+        do Output.printInt(Main.factorial(7));
+        do Output.println();
+
+        return;
+    }
+
+    /**
+     * Compute factorial recursively
+     * factorial(n) = n * factorial(n-1)
+     * factorial(0) = factorial(1) = 1 (base case)
+     */
+    function int factorial(int n) {
+        var int result;
+
+        if (n < 2) {
+            return 1;
+        } else {
+            let result = Main.factorial(n - 1);
+            return n * result;
+        }
+    }
+}

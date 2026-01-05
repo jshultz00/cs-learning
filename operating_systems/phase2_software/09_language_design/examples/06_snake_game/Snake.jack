@@ -1,0 +1,142 @@
+/**
+ * Snake - The snake entity
+ *
+ * Demonstrates:
+ * - Complex game state management
+ * - Array usage for body segments
+ * - Collision detection
+ * - Movement mechanics
+ */
+class Snake {
+    field Array bodyX, bodyY;    // Snake body coordinates
+    field int length;            // Current length
+    field int maxLength;         // Max capacity
+    field int dirX, dirY;        // Current direction
+    field boolean alive;
+
+    /** Constructor - create snake at center of screen */
+    constructor Snake new() {
+        let maxLength = 100;
+        let bodyX = Array.new(maxLength);
+        let bodyY = Array.new(maxLength);
+
+        // Start at center, length 3, moving right
+        let length = 3;
+        let bodyX[0] = 128;
+        let bodyY[0] = 128;
+        let bodyX[1] = 127;
+        let bodyY[1] = 128;
+        let bodyX[2] = 126;
+        let bodyY[2] = 128;
+
+        let dirX = 1;      // Moving right
+        let dirY = 0;
+        let alive = true;
+
+        return this;
+    }
+
+    /** Destructor */
+    method void dispose() {
+        do bodyX.dispose();
+        do bodyY.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Set direction (prevent 180-degree turns) */
+    method void setDirection(int dx, int dy) {
+        // Only change direction if not reversing
+        if (~((dirX + dx) = 0) | ~((dirY + dy) = 0)) {
+            let dirX = dx;
+            let dirY = dy;
+        }
+        return;
+    }
+
+    /** Move snake one step in current direction */
+    method void move() {
+        var int i, newX, newY;
+
+        if (~alive) {
+            return;
+        }
+
+        // Calculate new head position
+        let newX = bodyX[0] + dirX;
+        let newY = bodyY[0] + dirY;
+
+        // Check wall collision
+        if ((newX < 0) | (newX > 255) | (newY < 0) | (newY > 255)) {
+            let alive = false;
+            return;
+        }
+
+        // Check self collision
+        let i = 0;
+        while (i < length) {
+            if ((bodyX[i] = newX) & (bodyY[i] = newY)) {
+                let alive = false;
+                return;
+            }
+            let i = i + 1;
+        }
+
+        // Move body (shift all segments back)
+        let i = length - 1;
+        while (i > 0) {
+            let bodyX[i] = bodyX[i - 1];
+            let bodyY[i] = bodyY[i - 1];
+            let i = i - 1;
+        }
+
+        // Move head
+        let bodyX[0] = newX;
+        let bodyY[0] = newY;
+
+        return;
+    }
+
+    /** Grow snake by one segment */
+    method void grow() {
+        if (length < maxLength) {
+            let length = length + 1;
+        }
+        return;
+    }
+
+    /** Check if snake is alive */
+    method boolean isAlive() {
+        return alive;
+    }
+
+    /** Draw snake on screen */
+    method void draw() {
+        var int i;
+        let i = 0;
+
+        while (i < length) {
+            do Screen.setColor(true);
+            do Screen.drawRectangle(bodyX[i] * 2, bodyY[i] * 2,
+                                     (bodyX[i] * 2) + 1, (bodyY[i] * 2) + 1);
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /** Get head X coordinate */
+    method int getHeadX() {
+        return bodyX[0];
+    }
+
+    /** Get head Y coordinate */
+    method int getHeadY() {
+        return bodyY[0];
+    }
+
+    /** Get current length */
+    method int getLength() {
+        return length;
+    }
+}

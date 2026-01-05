@@ -1,0 +1,63 @@
+/**
+ * Point Class Demonstration
+ *
+ * Demonstrates:
+ * - Object creation (constructors)
+ * - Method calls on objects
+ * - Object manipulation
+ * - Proper memory management
+ */
+class Main {
+    function void main() {
+        var Point p1, p2;
+
+        // Create two points
+        let p1 = Point.new(10, 20);
+        let p2 = Point.new(30, 40);
+
+        // Print initial points
+        do Output.printString("p1 = ");
+        do p1.print();
+        do Output.println();
+
+        do Output.printString("p2 = ");
+        do p2.print();
+        do Output.println();
+
+        // Print distances from origin
+        do Output.printString("p1 distance from origin: ");
+        do Output.printInt(p1.distanceFromOrigin());
+        do Output.println();
+
+        do Output.printString("p2 distance from origin: ");
+        do Output.printInt(p2.distanceFromOrigin());
+        do Output.println();
+
+        // Move p1
+        do Output.println();
+        do Output.printString("Moving p1 by (5, -3)...");
+        do Output.println();
+        do p1.move(5, -3);
+
+        do Output.printString("After move, p1 = ");
+        do p1.print();
+        do Output.println();
+
+        // Use setters on p2
+        do Output.println();
+        do Output.printString("Setting p2 to (100, 200)...");
+        do Output.println();
+        do p2.setX(100);
+        do p2.setY(200);
+
+        do Output.printString("After setters, p2 = ");
+        do p2.print();
+        do Output.println();
+
+        // Clean up memory
+        do p1.dispose();
+        do p2.dispose();
+
+        return;
+    }
+}

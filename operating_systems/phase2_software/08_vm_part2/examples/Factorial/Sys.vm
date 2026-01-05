@@ -1,0 +1,6 @@
+// System initialization
+function Sys.init 0
+    call Main.main 0
+    // Leave return value on stack for testing
+label SYS_HALT
+    goto SYS_HALT

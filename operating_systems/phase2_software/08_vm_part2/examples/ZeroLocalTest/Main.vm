@@ -1,0 +1,14 @@
+
+function Main.main 1
+    push constant 5
+    push constant 3
+    call Main.add 2
+    pop local 0
+    push local 0
+    return
+
+function Main.add 0
+    push argument 0
+    push argument 1
+    add
+    return

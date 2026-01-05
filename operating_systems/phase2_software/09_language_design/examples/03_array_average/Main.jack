@@ -1,0 +1,49 @@
+/**
+ * Array Average Calculator
+ *
+ * Demonstrates:
+ * - Array creation and manipulation
+ * - Array indexing
+ * - While loops
+ * - Local variables
+ * - Memory management (dispose)
+ */
+class Main {
+    function void main() {
+        var Array arr;
+        var int i, sum, avg;
+
+        // Create array and populate with values
+        let arr = Array.new(5);
+        let arr[0] = 10;
+        let arr[1] = 20;
+        let arr[2] = 30;
+        let arr[3] = 40;
+        let arr[4] = 50;
+
+        // Calculate sum
+        let sum = 0;
+        let i = 0;
+        while (i < 5) {
+            let sum = sum + arr[i];
+            let i = i + 1;
+        }
+
+        // Calculate average
+        let avg = sum / 5;
+
+        // Print results
+        do Output.printString("Array: [10, 20, 30, 40, 50]");
+        do Output.println();
+        do Output.printString("Sum = ");
+        do Output.printInt(sum);
+        do Output.println();
+        do Output.printString("Average = ");
+        do Output.printInt(avg);
+        do Output.println();
+
+        // Clean up memory
+        do arr.dispose();
+        return;
+    }
+}

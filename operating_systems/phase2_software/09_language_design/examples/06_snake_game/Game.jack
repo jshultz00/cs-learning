@@ -1,0 +1,152 @@
+/**
+ * Game - Main game controller
+ *
+ * Demonstrates:
+ * - Game loop pattern
+ * - Input handling
+ * - Collision detection
+ * - Score tracking
+ * - Screen rendering
+ */
+class Game {
+    field Snake snake;
+    field Food food;
+    field int score;
+    field boolean exit;
+
+    /** Constructor */
+    constructor Game new() {
+        let snake = Snake.new();
+        let food = Food.new(200, 100);
+        let score = 0;
+        let exit = false;
+        return this;
+    }
+
+    /** Destructor */
+    method void dispose() {
+        do snake.dispose();
+        do food.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Main game loop */
+    method void run() {
+        var int key;
+        var int delay;
+
+        let delay = 100;
+
+        // Show instructions
+        do showInstructions();
+        do Sys.wait(2000);
+
+        // Game loop
+        while ((~exit) & snake.isAlive()) {
+            // Handle input
+            let key = Keyboard.keyPressed();
+
+            if (key = 81) { let exit = true; }                    // Q = quit
+            if (key = 131) { do snake.setDirection(0, -1); }      // Up arrow
+            if (key = 133) { do snake.setDirection(0, 1); }       // Down arrow
+            if (key = 130) { do snake.setDirection(-1, 0); }      // Left arrow
+            if (key = 132) { do snake.setDirection(1, 0); }       // Right arrow
+
+            // Move snake
+            do snake.move();
+
+            // Check food collision
+            if ((snake.getHeadX() = food.getX()) & (snake.getHeadY() = food.getY())) {
+                do snake.grow();
+                let score = score + 10;
+
+                // Respawn food at new location
+                // Simple pseudo-random position based on score
+                do food.setPosition(
+                    Math.mod(score * 37, 200) + 20,
+                    Math.mod(score * 73, 200) + 20
+                );
+            }
+
+            // Draw
+            do draw();
+
+            // Delay for game speed
+            do Sys.wait(delay);
+        }
+
+        // Game over
+        do showGameOver();
+
+        return;
+    }
+
+    /** Draw game screen */
+    method void draw() {
+        do Screen.clearScreen();
+
+        // Draw snake and food
+        do snake.draw();
+        do food.draw();
+
+        // Draw border
+        do Screen.setColor(true);
+        do Screen.drawRectangle(0, 0, 511, 2);      // Top
+        do Screen.drawRectangle(0, 253, 511, 255);  // Bottom
+        do Screen.drawRectangle(0, 0, 2, 255);      // Left
+        do Screen.drawRectangle(509, 0, 511, 255);  // Right
+
+        // Draw score
+        do Output.moveCursor(0, 0);
+        do Output.printString("Score: ");
+        do Output.printInt(score);
+        do Output.printString("  Length: ");
+        do Output.printInt(snake.getLength());
+        do Output.printString("  [Q to quit]");
+
+        return;
+    }
+
+    /** Show instructions screen */
+    method void showInstructions() {
+        do Screen.clearScreen();
+        do Output.moveCursor(8, 20);
+        do Output.printString("SNAKE GAME");
+
+        do Output.moveCursor(10, 15);
+        do Output.printString("Use arrow keys to move");
+
+        do Output.moveCursor(11, 15);
+        do Output.printString("Eat food to grow");
+
+        do Output.moveCursor(12, 15);
+        do Output.printString("Don't hit walls or yourself");
+
+        do Output.moveCursor(14, 15);
+        do Output.printString("Press Q to quit");
+
+        do Output.moveCursor(16, 15);
+        do Output.printString("Starting in 2 seconds...");
+
+        return;
+    }
+
+    /** Show game over screen */
+    method void showGameOver() {
+        do Screen.clearScreen();
+
+        do Output.moveCursor(10, 25);
+        do Output.printString("GAME OVER");
+
+        do Output.moveCursor(12, 20);
+        do Output.printString("Final Score: ");
+        do Output.printInt(score);
+
+        do Output.moveCursor(14, 20);
+        do Output.printString("Final Length: ");
+        do Output.printInt(snake.getLength());
+
+        return;
+    }
+}

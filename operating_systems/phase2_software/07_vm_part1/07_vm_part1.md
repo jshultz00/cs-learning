@@ -276,10 +276,12 @@ D=M           // D = second operand (8)
 @SP
 M=M-1         // SP--
 A=M           // A = SP (now points to first operand)
-M=M+D         // RAM[SP] = first + second (7 + 8 = 15)
+M=D+M         // RAM[SP] = y + x (Hack requires D as first operand)
 @SP
 M=M+1         // SP++ (result is now on top of stack)
 ```
+
+🎓 **Critical Implementation Detail**: The Hack ISA only supports `D+M`, `D-M`, `D&M`, `D|M` but **NOT** `M+D`, `M-D`, etc. This means D register must always be the first operand in two-operand computations. For commutative operations (add, and, or), this doesn't affect the result, but for subtraction, we must carefully manage which value goes into D.
 
 **Pattern**: All arithmetic operations follow this structure:
 1. Pop operand(s) from stack
@@ -296,10 +298,10 @@ push local 2
 Assembly translation:
 ```assembly
 // push local 2
-@2            // Offset within segment
-D=A           // D = 2
 @LCL          // LCL is base address of local segment
-A=M+D         // A = base + offset = address of local[2]
+D=M           // D = base address
+@2            // Offset within segment
+A=D+A         // A = base + offset = address of local[2]
 D=M           // D = RAM[local[2]] (the value)
 @SP
 A=M           // A = *SP
@@ -308,9 +310,31 @@ M=D           // RAM[SP] = value
 M=M+1         // SP++
 ```
 
+🎓 **Why this order?** We load the base address into D first, then add the constant offset using `A=D+A`. This is because Hack assembly doesn't support `A=M+D` (M must be second operand). The pattern `D=M; A=D+A` computes the effective address while respecting Hack's ISA constraints.
+
 **Pattern for segment access**:
 - **Push**: `address = segment_base + offset`, then `push RAM[address]`
 - **Pop**: `address = segment_base + offset`, then `RAM[address] = pop()`
+
+**Pop requires temporary storage**:
+```assembly
+// pop local 2
+@LCL
+D=M           // D = base address
+@2
+D=D+A         // D = base + offset (destination address)
+@R13
+M=D           // Save destination in R13 (temporary register)
+@SP
+M=M-1         // SP--
+A=M           // A = SP
+D=M           // D = popped value
+@R13
+A=M           // A = destination address from R13
+M=D           // RAM[destination] = popped value
+```
+
+🎓 **Why use R13?** Hack assembly cannot express "write D to the address stored in memory location X" in one instruction. We must: (1) compute destination address → D, (2) save to temporary (R13), (3) pop value → D, (4) load saved address → A, (5) write D to RAM[A]. This is a fundamental constraint of the Hack ISA.
 
 ### The VM Instruction Set (Project 7 Subset)
 
@@ -1329,6 +1353,283 @@ Your initial implementation prioritizes **correctness and clarity**. After tests
 
 🎓 **Key insight**: Optimize **after** achieving correctness. Premature optimization makes debugging harder. Your generated assembly will be ~5x larger than hand-written code, but that's okay—clarity matters more at this stage.
 
+## Deep Dive: Implementation Insights
+
+This section provides in-depth explanations of critical implementation decisions and challenges you'll encounter.
+
+### Understanding Stack Pointer Semantics
+
+The stack pointer (SP) convention is **crucial** and differs from some other architectures:
+
+**SP points to the NEXT FREE SLOT, not the top value**
+
+```
+Stack state after pushing 7 and 8:
+
+RAM[256] = 7    ← First value pushed
+RAM[257] = 8    ← Second value pushed (current top)
+RAM[258] = ?    ← SP points HERE (next free slot)
+
+SP = 258 (not 257!)
+```
+
+**Why this matters for push/pop:**
+
+```assembly
+// PUSH operation pattern:
+@SP
+A=M           // A = address of NEXT FREE SLOT
+M=D           // Write value to that slot
+@SP
+M=M+1         // NOW increment SP to next free slot
+
+// POP operation pattern:
+@SP
+M=M-1         // FIRST decrement SP to point at top value
+A=M           // A = address of TOP VALUE
+D=M           // Read the value
+```
+
+**Common mistake**: Decrementing SP after reading the value in a pop will read from the wrong location!
+
+### Hack ISA Constraints and Workarounds
+
+The Hack instruction set has specific limitations that require careful code generation:
+
+**Constraint 1: Operand ordering in computations**
+
+```
+VALID Hack instructions:
+- D+M, D+A    (D is first operand)
+- D-M, D-A
+- D&M, D&A
+- D|M, D|A
+
+INVALID Hack instructions:
+- M+D, A+D    (Cannot use M or A as first operand with D)
+- M-D, A-D
+- M&D, A&D
+- M|D, A|D
+```
+
+**Workaround for commutative operations (add, and, or)**:
+```python
+# Since addition is commutative: x + y = y + x
+# We can safely use D+M even if semantically we want M+D
+asm = "M=D+M\n"    # Computes y + x, same result as x + y
+```
+
+**Special case for subtraction (NOT commutative)**:
+```python
+# For subtraction: x - y ≠ y - x
+# We must ensure x is in M and y is in D
+# Stack order: [..., x, y] with y on top
+# After first pop: D = y
+# After second pop: we're at x
+# So M=M-D gives us x - y (correct!)
+asm = "M=M-D\n"    # Computes x - y (M is x, D is y)
+```
+
+**Constraint 2: Address arithmetic**
+
+```
+INVALID:
+@LCL+2         // Cannot do arithmetic in address field
+A=M+D          // M cannot be first operand
+
+VALID workaround:
+@LCL
+D=M            // D = base
+@2
+A=D+A          // A = base + offset
+```
+
+This is why pointer-based segment access requires loading the base address into D first.
+
+### Comparison Operations: The Label Challenge
+
+Comparisons require conditional execution, which needs unique labels:
+
+**The problem:**
+```python
+# WRONG: Reusing the same labels
+def generate_eq(self):
+    return """
+    @TRUE
+    D;JEQ
+    @SP
+    A=M
+    M=0
+    @END
+    0;JMP
+    (TRUE)
+    @SP
+    A=M
+    M=-1
+    (END)
+    """
+# Second call to generate_eq() will OVERWRITE the (TRUE) and (END) labels!
+```
+
+**The solution: Label counters**
+```python
+def generate_eq(self):
+    label_true = f"TRUE_{self.label_counter}"
+    label_end = f"END_{self.label_counter}"
+    self.label_counter += 1  # Unique for each comparison
+    # ... use label_true and label_end in assembly
+```
+
+**Why -1 for true?**
+- True = -1 (binary: 1111111111111111 - all bits set)
+- False = 0 (binary: 0000000000000000 - all bits clear)
+
+This makes bitwise operations work naturally as logical operations:
+```
+-1 AND -1 = -1  (true AND true = true)
+-1 AND 0 = 0    (true AND false = false)
+-1 OR 0 = -1    (true OR false = true)
+NOT -1 = 0      (NOT true = false)
+```
+
+### Static Variable Scoping
+
+**The problem**: Multiple VM files using the same static indices would collide in RAM.
+
+```
+File1.vm uses: static 0, static 1
+File2.vm uses: static 0, static 1
+
+Without scoping, both would map to the same RAM addresses!
+```
+
+**The solution**: File-scoped symbol names
+```python
+# In CodeGenerator.__init__:
+self.current_file = filename.replace('.vm', '').split('/')[-1]
+
+# In generate_push/generate_pop for static:
+static_symbol = f"{self.current_file}.{index}"
+# File Main.vm, static 3 → symbol "Main.3"
+# File Helper.vm, static 3 → symbol "Helper.3"
+```
+
+The assembler's symbol table assigns unique RAM addresses to each symbol.
+
+### Memory Segment Implementation Patterns
+
+**Direct addressing (temp, pointer)**:
+```python
+# Temp: Fixed addresses RAM[5-12]
+address = 5 + index
+return f"@{address}\nD=M\n..."
+
+# Pointer: Fixed addresses RAM[3] (THIS), RAM[4] (THAT)
+pointer_addr = 3 if index == 0 else 4
+return f"@{pointer_addr}\nD=M\n..."
+```
+
+**Pointer-based (local, argument, this, that)**:
+```python
+# Base address stored in RAM[1] (LCL), RAM[2] (ARG), etc.
+# Actual data at RAM[base + index]
+return f"""
+@{pointer_symbol}
+D=M          // D = base address
+@{index}
+A=D+A        // A = base + index
+D=M          // D = value at base + index
+"""
+```
+
+**Virtual segment (constant)**:
+```python
+# Constants don't exist in RAM—just load the literal value
+return f"@{index}\nD=A\n..."  # D = literal value
+```
+
+### Debugging Generated Assembly
+
+**Common technique: Add VM command as comment**
+```python
+def generate(self, command):
+    asm = f"// VM: {command}\n"  # Makes assembly readable
+    if command['type'] == 'push':
+        asm += self.generate_push(...)
+    return asm
+```
+
+**Visual stack tracing:**
+```python
+# Insert this between operations to see stack state
+@SP
+D=M
+@R15
+M=D    // Save SP to R15 for inspection
+```
+
+**Validating translation**:
+1. Translate VM to assembly manually for 2-3 commands
+2. Compare with your generated assembly
+3. Load into CPU simulator and step through
+4. Watch RAM[256+] to see stack grow/shrink
+
+### Testing Strategy
+
+**Unit test structure**:
+```python
+def test_operation(self):
+    # 1. Create minimal VM program
+    vm_code = "push constant 5\npush constant 3\nadd\n"
+
+    # 2. Translate to assembly
+    translator.translate('test.vm')
+
+    # 3. Assemble to binary
+    assembler.assemble('test.asm', 'test.hack')
+
+    # 4. Execute on CPU simulator
+    cpu.load_program(binary)
+    cpu.run(max_cycles=1000)
+
+    # 5. Verify stack contents
+    sp = cpu.ram[0]
+    result = cpu.ram[sp - 1]  # Top of stack
+    assert result == 8
+```
+
+**Test progression**:
+1. Single operation (push constant)
+2. Binary operations (add, sub)
+3. Unary operations (neg, not)
+4. Comparisons (eq, gt, lt)
+5. Memory segments (local, temp, static)
+6. Complex programs (multiple operations)
+
+### Real-World Performance Considerations
+
+**Your implementation prioritizes correctness over performance**:
+
+| Aspect | Your Implementation | Production VM |
+|--------|-------------------|---------------|
+| Code size | ~20-30 instructions per VM command | ~5-10 (optimized) |
+| Speed | Interpreted, no optimizations | JIT compiled hot paths |
+| Memory | Each operation touches RAM multiple times | Register allocation |
+| Portability | 100% - same code everywhere | Architecture-specific backends |
+
+**Why this is fine for learning**:
+- **Clarity**: Each step is explicit and understandable
+- **Debuggability**: Easy to trace execution
+- **Correctness**: No subtle optimization bugs
+- **Foundation**: Understanding the naive approach makes optimizations meaningful
+
+**Where real VMs optimize**:
+- **JIT compilation**: Detect hot loops, compile to native code
+- **Register allocation**: Keep stack top in registers
+- **Peephole optimization**: Eliminate redundant loads/stores
+- **Inlining**: Replace function calls with body
+- **Dead code elimination**: Remove unused computations
+
 ## What You Should Understand After This Project
 
 - ✅ **Virtual machines provide abstraction**: Hide hardware details, enable portability
@@ -1529,3 +1830,35 @@ class Main {
 ```
 
 And watch it run on your computer, built from NAND gates. You're closer than you think! 🎉
+
+---
+
+## Summary: What You Built
+
+**You have implemented a complete stack-based virtual machine translator** that:
+
+1. **Parses** high-level VM commands from text files
+2. **Generates** Hack assembly language following strict ISA constraints
+3. **Manages** eight memory segments with different addressing modes
+4. **Implements** nine arithmetic/logical operations including comparisons
+5. **Handles** file-scoped static variables to prevent naming conflicts
+6. **Produces** working machine code that executes on the Hack computer
+
+**Technical accomplishments**:
+- ✅ Mastered stack-based computation model
+- ✅ Navigated Hack ISA constraints (operand ordering, address arithmetic)
+- ✅ Implemented pointer-based and direct memory addressing
+- ✅ Generated unique labels for control flow
+- ✅ Created a two-pass translation pipeline (parse → codegen)
+- ✅ Built comprehensive test suite with CPU simulation
+
+**Why this matters**:
+You've built the **foundation for every high-level programming language feature**:
+- Variables and expressions → stack operations
+- Functions → stack frames (Project 8)
+- Objects → memory segments
+- Control flow → comparisons + jumps (Project 8)
+
+**Next step**: Project 8 extends this translator to support function calls, program flow, and recursion—completing the VM layer and enabling full program compilation.
+
+You've now built **every layer from NAND gates to virtual machine**. The journey to high-level programming is nearly complete! 🚀

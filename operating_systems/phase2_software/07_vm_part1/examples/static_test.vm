@@ -1,0 +1,12 @@
+// Test static variables
+push constant 111
+push constant 333
+push constant 888
+pop static 8      // static[8] = 888
+pop static 3      // static[3] = 333
+pop static 1      // static[1] = 111
+push static 3     // Push 333
+push static 1     // Push 111
+sub               // 333 - 111 = 222
+push static 8     // Push 888
+add               // 222 + 888 = 1110
