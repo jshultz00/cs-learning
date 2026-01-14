@@ -221,13 +221,97 @@ if (sum < a) {
 ### 3.3 Multiplication
 
 **Unsigned:** `u * v` (mod 2^w)
+
 **Signed:** Similar truncation, but maintains two's complement
 
-**Performance note:**
+**Example - 4-bit unsigned multiplication:**
 ```c
-// Compiler often optimizes multiplication by powers of 2:
-x * 8   →  x << 3   (left shift by 3)
-x * 5   →  (x << 2) + x   (shift and add)
+// 3 × 2 = 6 (fits in 4 bits)
+  0011  (3)
+× 0010  (2)
+------
+  0110  (6)
+
+// 5 × 4 = 20 (doesn't fit in 4 bits!)
+  0101  (5)
+× 0100  (4)
+------
+  10100  (20 in binary)
+  0100   (4 after truncation to 4 bits)
+// Only lower 4 bits kept: 20 mod 16 = 4
+```
+
+**Example - 4-bit signed (two's complement) multiplication:**
+```c
+// 3 × 2 = 6 (fits)
+  0011  (3)
+× 0010  (2)
+------
+  0110  (6)
+
+// -3 × 2 = -6 (fits)
+  1101  (-3 in two's complement)
+× 0010  (2)
+------
+  1010  (-6 in two's complement)
+
+// Overflow example: 4 × 3 = 12 (doesn't fit in 4-bit signed, max is 7)
+  0100  (4)
+× 0011  (3)
+------
+  1100  (Would be 12, but interpreted as -4!)
+```
+
+**Multiplication by powers of 2 (left shift optimization):**
+```c
+// Power of 2: Simply shift left
+x * 2  = x << 1
+x * 4  = x << 2
+x * 8  = x << 3
+
+// Example: 3 * 4
+  0011  (3)
+<< 2
+------
+  1100  (12)
+```
+
+**Multiplication by constants (compiler optimization):**
+```c
+// x * 5 = x * (4 + 1) = (x << 2) + x
+int x = 3;
+x * 5 = (3 << 2) + 3
+      = 12 + 3
+      = 15
+
+  0011  (3)      0011  (3)
+<< 2           +
+------         ------
+  1100  (12)    1111  (15)
+
+// x * 7 = x * (8 - 1) = (x << 3) - x
+int x = 2;
+x * 7 = (2 << 3) - 2
+      = 16 - 2
+      = 14
+
+   0010  (2)         0010  (2)
+<< 3              -
+-------           -------
+  10000  (16)      01110  (14)
+
+// x * 6 = x * (4 + 2) = (x << 2) + (x << 1)
+int x = 3;
+x * 6 = (3 << 2) + (3 << 1)
+      = 12 + 6
+      = 18
+
+  0011  (3)      0011  (3)
+<< 2           + << 1
+------           ------
+  1100  (12)     0110  (6)
+                -------
+                 10010  (18)
 ```
 
 ### 3.4 Division
@@ -240,6 +324,86 @@ x >> k  (logical shift)
 // Signed division (tricky due to rounding toward zero):
 (x + (1 << k) - 1) >> k  // Bias for correct rounding
 ```
+
+**Example - Unsigned division by powers of 2:**
+```c
+// 12 / 4 = 3 (exact division)
+unsigned x = 12;  // 1100
+x >> 2            // 0011 (3)
+
+// 13 / 4 = 3 (rounds down)
+unsigned y = 13;  // 1101
+y >> 2            // 0011 (3)
+// Integer division: 13/4 = 3.25 → 3
+
+// 14 / 2 = 7 (exact)
+unsigned z = 14;  // 1110
+z >> 1            // 0111 (7)
+```
+
+**Example - Signed division by powers of 2 (THE TRICKY PART):**
+```c
+// 4-bit signed range: -8 to +7
+
+// Positive numbers: same as unsigned
+int x = 6;        // 0110
+x >> 1            // 0011 (3) ✓
+
+// Negative numbers: need bias for correct rounding toward zero
+int y = -6;       // 1010 (two's complement)
+
+// WRONG: Direct right shift gives wrong answer (sometimes)
+y >> 1            // 1101 (-3)
+// But -6/2 should be -3, so this happens to work!
+
+// Where it breaks: -7 / 2
+int z = -7;       // 1001
+z >> 1            // 1100 (-4) ✗ WRONG!
+// -7/2 = -3.5 → should round to -3, not -4
+
+// CORRECT: Add bias before shifting
+(z + (1 << 1) - 1) >> 1
+= (z + 1) >> 1
+= (-7 + 1) >> 1
+= (-6) >> 1
+= -3 ✓ (rounds toward zero, not down)
+
+// Why bias works:
+// - Right shift rounds down (toward -∞)
+// - C division rounds toward zero
+// - For negative numbers, bias compensates the difference
+```
+
+**Visual example of signed division:**
+```c
+// -5 / 2 = -2.5 → -2 (round toward zero)
+
+// Without bias:
+-5 = 1011
+-5 >> 1 = 1101 = -3 ✗ (rounds down to -∞)
+
+// With bias:
+(-5 + 1) >> 1 = -4 >> 1 = 1100 >> 1 = 1110 = -2 ✓
+
+// -6 / 2 = -3 (exact)
+(-6 + 1) >> 1 = -5 >> 1 = 1011 >> 1 = 1101 = -3 ✓
+
+// -8 / 2 = -4 (exact)
+(-8 + 1) >> 1 = -7 >> 1 = 1001 >> 1 = 1100 = -4 ✓
+```
+
+**Why signed division needs bias:**
+| Value | /4 (math) | >>2 (no bias) | (+3)>>2 (bias) |
+|-------|-----------|---------------|----------------|
+| 7     | 1.75 → 1  | 1 ✓           | 2 ✗            |
+| 6     | 1.5 → 1   | 1 ✓           | 2 ✗            |
+| 5     | 1.25 → 1  | 1 ✓           | 2 ✗            |
+| 4     | 1 → 1     | 1 ✓           | 1 ✓            |
+| -1    | -0.25 → 0 | -1 ✗          | 0 ✓            |
+| -2    | -0.5 → 0  | -1 ✗          | 0 ✓            |
+| -3    | -0.75 → 0 | -1 ✗          | 0 ✓            |
+| -4    | -1 → -1   | -1 ✓          | -1 ✓           |
+| -5    | -1.25 → -1| -2 ✗          | -1 ✓           |
 
 **Key difference:**
 - **Logical shift** (`>>` for unsigned): Fill with zeros
@@ -271,18 +435,25 @@ x | y | x&y | x|y | x^y | ~x
 ```c
 // Extract lowest byte
 x & 0xFF
+// Example: x = 0xABCD, x & 0xFF = 0xCD
 
 // Set bit 5
 x | (1 << 5)
+// Example: x = 0b00010000 (16), x | (1 << 5) = 0b00110000 (48)
 
 // Clear bit 3
 x & ~(1 << 3)
+// Example: x = 0b00011111 (31), x & ~(1 << 3) = 0b00010111 (23)
 
 // Toggle bit 7
 x ^ (1 << 7)
+// Example: x = 0b10000000 (128), x ^ (1 << 7) = 0b00000000 (0)
+//          x = 0b00000000 (0),   x ^ (1 << 7) = 0b10000000 (128)
 
 // Check if bit 4 is set
 if (x & (1 << 4)) { ... }
+// Example: x = 0b00010100 (20), (x & (1 << 4)) = 0b00010000 = 16 (true)
+//          x = 0b00000100 (4),  (x & (1 << 4)) = 0b00000000 = 0 (false)
 ```
 
 ### 4.2 Shift Operations
@@ -315,11 +486,156 @@ void swap(int *x, int *y) {
 }
 ```
 
+**How it works:**
+
+**Step-by-step example: swap(5, 3)**
+```c
+// Initial values:
+x = 0101 (5)
+y = 0011 (3)
+
+// Step 1: *x = *x ^ *y
+// XOR each bit position:
+   0101  (x = 5)
+^  0011  (y = 3)
+--------
+   0110  (x = 6)
+// Now x stores the "difference" between original x and y
+// This captures information about both numbers!
+
+// Step 2: *y = *x ^ *y
+// XOR the new x with original y:
+   0110  (x = 6, which is original_x ^ original_y)
+^  0011  (y = 3, still original value)
+--------
+   0101  (y = 5)
+// Magic! y now equals the original x
+// Why? (original_x ^ original_y) ^ original_y = original_x
+// Because: y ^ y cancels out, leaving just original_x
+
+// Step 3: *x = *x ^ *y
+// XOR the old x with new y:
+   0110  (x = 6, still original_x ^ original_y)
+^  0101  (y = 5, which is now original_x)
+--------
+   0011  (x = 3)
+// Double magic! x now equals the original y
+// Why? (original_x ^ original_y) ^ original_x = original_y
+// Because: x ^ x cancels out, leaving just original_y
+
+// Final: x = 3, y = 5 (swapped!)
+```
+
+**Why it works: XOR properties**
+```c
+// Key XOR properties:
+1. a ^ a = 0           (anything XOR itself is zero)
+2. a ^ 0 = a           (anything XOR zero is itself)
+3. XOR is commutative: a ^ b = b ^ a
+4. XOR is associative: (a ^ b) ^ c = a ^ (b ^ c)
+
+// Proof for Step 2:
+y_new = x_new ^ y_old
+      = (x_old ^ y_old) ^ y_old       // substitute x_new
+      = x_old ^ (y_old ^ y_old)       // associative property
+      = x_old ^ 0                     // y_old ^ y_old = 0
+      = x_old                         // x_old ^ 0 = x_old ✓
+
+// Proof for Step 3:
+x_new = x_old ^ y_new
+      = (x_old ^ y_old) ^ x_old       // substitute from Step 1 & 2
+      = (x_old ^ x_old) ^ y_old       // rearrange (commutative)
+      = 0 ^ y_old                     // x_old ^ x_old = 0
+      = y_old                         // 0 ^ y_old = y_old ✓
+```
+
+**Detailed bit-by-bit breakdown:**
+```c
+Position:  3 2 1 0    (bit positions)
+
+Initial:
+x:         0 1 0 1    (5)
+y:         0 0 1 1    (3)
+
+After Step 1 (x = x ^ y):
+x:         0 1 1 0    (6)
+           | | | |
+Bit 0: 1^1 = 0 ✓
+Bit 1: 0^1 = 1 ✓
+Bit 2: 1^0 = 1 ✓
+Bit 3: 0^0 = 0 ✓
+
+After Step 2 (y = x ^ y):
+y:         0 1 0 1    (5) ← original x value!
+           | | | |
+Bit 0: 0^1 = 1 ✓
+Bit 1: 1^1 = 0 ✓
+Bit 2: 1^0 = 1 ✓
+Bit 3: 0^0 = 0 ✓
+
+After Step 3 (x = x ^ y):
+x:         0 0 1 1    (3) ← original y value!
+           | | | |
+Bit 0: 0^1 = 1 ✓
+Bit 1: 1^0 = 1 ✓
+Bit 2: 1^1 = 0 ✓
+Bit 3: 0^0 = 0 ✓
+```
+
+**Important caveats:**
+```c
+// DANGER: Fails if x and y point to the same location!
+int a = 5;
+swap(&a, &a);  // BUG: a becomes 0!
+
+// Why?
+// Step 1: a = a ^ a = 0
+// Step 2: a = 0 ^ 0 = 0
+// Step 3: a = 0 ^ 0 = 0
+// Everything gets zeroed!
+
+// Always check for aliasing:
+void safe_swap(int *x, int *y) {
+    if (x != y) {  // Guard against same address
+        *x = *x ^ *y;
+        *y = *x ^ *y;
+        *x = *x ^ *y;
+    }
+}
+
+// Also: XOR swap is NOT faster than temp variable on modern CPUs!
+// Compilers usually optimize temp-based swap better.
+// Use XOR swap only for learning or when memory is extremely tight.
+```
+
 **Check if power of 2:**
 ```c
 bool isPowerOf2(unsigned x) {
     return x && !(x & (x - 1));
 }
+```
+
+**How it works:**
+```c
+// Powers of 2 have exactly one bit set:
+// 1:   0001
+// 2:   0010
+// 4:   0100
+// 8:   1000
+// 16: 10000
+
+// Subtracting 1 flips all bits after the single set bit:
+// 8:     1000
+// 8-1:   0111
+// 8&7:   0000  ✓ (is power of 2)
+
+// Non-powers have multiple bits:
+// 6:     0110
+// 6-1:   0101
+// 6&5:   0100  ✗ (not power of 2)
+
+// Edge case: 0 is not a power of 2
+// 0 && !(0 & -1) = 0 && !0 = 0 && 1 = 0 ✗
 ```
 
 **Count set bits (population count):**
@@ -334,9 +650,69 @@ int popcount(unsigned x) {
 }
 ```
 
+**How it works:**
+```c
+// x & (x-1) clears the lowest set bit
+
+// Example: count bits in 13 (1101)
+Iteration 1:
+  x = 1101 (13)
+  x-1 = 1100 (12)
+  x & (x-1) = 1101 & 1100 = 1100
+  count = 1
+
+Iteration 2:
+  x = 1100 (12)
+  x-1 = 1011 (11)
+  x & (x-1) = 1100 & 1011 = 1000
+  count = 2
+
+Iteration 3:
+  x = 1000 (8)
+  x-1 = 0111 (7)
+  x & (x-1) = 1000 & 0111 = 0000
+  count = 3
+
+Iteration 4:
+  x = 0 (loop exits)
+
+Result: 3 bits set ✓
+
+// Why it works: (x-1) flips all bits up to and including
+// the lowest set bit, so (x & (x-1)) zeroes just that bit
+```
+
 **Isolate lowest set bit:**
 ```c
 x & (-x)  // or x & (~x + 1)
+```
+
+**How it works:**
+```c
+// Negative in two's complement: -x = ~x + 1
+
+// Example: isolate lowest bit in 12 (1100)
+x = 1100 (12)
+~x = 0011 (bitwise NOT)
+~x+1 = 0100 (add 1)
+x & (~x+1) = 1100 & 0100 = 0100 (isolated bit 2!)
+
+// Another example: 10 (1010)
+x = 1010 (10)
+-x = 0110 (two's complement)
+x & (-x) = 1010 & 0110 = 0010 (isolated bit 1!)
+
+// Why it works:
+// Two's complement flips all bits and adds 1
+// This causes all bits BELOW the lowest set bit to flip
+// The lowest set bit itself stays in the same position
+// AND-ing preserves only that bit
+
+Visual:
+x:     ...abc100  (lowest set bit at position 2)
+~x:    ...~a~b~c011  (all flipped)
+~x+1:  ...~a~b~c100  (add 1, carries up)
+x&-x:  ...000100  (only lowest bit remains!)
 ```
 
 ---
