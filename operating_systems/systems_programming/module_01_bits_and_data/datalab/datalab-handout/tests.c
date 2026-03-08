@@ -69,6 +69,8 @@ int test_tmin(void) {
 }
 int test_fitsBits(int x, int n)
 {
+  /* Fix: when n=32, all ints fit. Original had UB: -(1 << 31) overflows signed int. */
+  if (n >= 32) return 1;
   int TMin_n = -(1 << (n-1));
   int TMax_n = (1 << (n-1)) - 1;
   return x >= TMin_n && x <= TMax_n;
