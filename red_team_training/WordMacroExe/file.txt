@@ -1,0 +1,16 @@
+
+
+    Set shell = CreateObject("WScript.Shell")
+    On Error Resume Next
+    shell.RegRead "HKEY_USERS\S-1-5-19\Environment"
+    isAdmin = (Err.Number = 0)
+    Debug.Print isAdmin
+    On Error GoTo 0
+
+    If Not isAdmin Then
+        ' If not running as administrator, restart the script with elevated privileges
+        Set shell = CreateObject("Shell.Application")
+        ' Re-run the script using the "runas" verb to elevate privileges
+        shell.ShellExecute "wscript.exe", """" & WScript.ScriptFullName & """", "", "runas", 1
+        Exit Sub
+    End If
